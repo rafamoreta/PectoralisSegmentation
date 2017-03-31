@@ -1,8 +1,3 @@
-import numpy as np
-import tensorflow as tf
-import SimpleITK as sitk
-
-
 from data_management import DataManagement
 from unet_network import ArchitectureParameters, TrainingParameters, UNETNetwork
 from engine import Engine
@@ -15,7 +10,9 @@ def segment_pectoralis(data_path, slice_num, selection, model_path, output_path,
 
     ## Step 1: Parameters Selection
     if verbose:
+        print('-' * 30)
         print('Step 1: Starting Parameters Selection...')
+
     # Selection = 1:
     # Segmentation of background and all pectoralis as one class
     if selection == 1:
@@ -58,9 +55,11 @@ def segment_pectoralis(data_path, slice_num, selection, model_path, output_path,
                                                 class_code=class_code)
     if verbose:
         print('Step 1 Done.')
+        print('-' * 30)
 
     ## Step 2: Get Images from ".nrrd"
     if verbose:
+        print('-' * 30)
         print('Step 2: Starting Get Images...')
 
     data_management = DataManagement(architecture_params)
@@ -68,29 +67,36 @@ def segment_pectoralis(data_path, slice_num, selection, model_path, output_path,
 
     if verbose:
         print('Step 2 Done.')
+        print('-' * 30)
 
     ## Step 3: Network creation
     if verbose:
+        print('-' * 30)
         print('Step 3: Starting UNETNetwork...')
 
     unet_network = UNETNetwork(architecture_params)
 
     if verbose:
         print('Step 3 Done.')
+        print('-' * 30)
 
     ## Step 4: Engine Testing
     if verbose:
+        print('-' * 30)
         print('Step 4: Starting Engine Testing...')
 
-    unet_engine = Engine(output_path, unet_network)
+    unet_engine = Engine(unet_network, output_path)
     pred_labels = unet_engine.predict_pectoralis(selection, test_images, model_path)
 
     if verbose:
         print('Step 4 Done.')
+        print('-' * 30)
 
     ## Step 5: Save Segmentation Prediction
     if verbose:
+        print('-' * 30)
         print('Step 5: Starting Save Segmentation Prediction...')
+        print('-' * 30)
 
     pred_labels_unique = data_management.save_labels_as_nrrd(output_path, pred_labels)
 
@@ -128,26 +134,29 @@ def train(data_folder, output_folder):
     unet_engine = Engine(output_folder, unet_network)
     training_history, history = unet_engine.fit(train_images, train_labels, train_params)
 
-
 def get_labelmap(input_data, slice, unet_model_checkpoint_folder, unet_num_classes, unet_labelmap_output_path):
     return "Labelmap would be generated in " + unet_labelmap_output_path
+
 ##
 
-from optparse import OptionParser
 import argparse
 
 if __name__ == "__main__":
-    pass
-    #parser = OptionParser(description='Pectoralis Segmentation')
+    #pass
     parser = argparse.ArgumentParser(description='Pectoralis Segmentation')
-    parser.add_argument('-operation', dest='operation', help='TRAIN, TEST',type=str, required=True)
-    parser.add_argument('-data_path', dest='data_path', help='Path of CT',type=str, required=True)
-    parser.add_argument('-test_selection', dest='test_selection', help='1,2,3',type=int, required=True)
-    parser.add_argument('-model_path', dest='model_path', help='Path of Model',type=str, required=False)
-    parser.add_argument('-model_path2', dest='model_path2', help='Path of Model2',type=str, required=False)
-    parser.add_argument('-output_path', dest='output_path', help='Output path for saving results',type=str, required=False)
-    parser.add_argument('-slice_num', dest='slice_num', help='Slice of the CT',type=str, required=False)
-    parser.add_argument('-verbose', dest='verbose', help='Verbose prcoess',type=bool, required=False)
+    parser.add_argument('-o', dest='operation', help='TRAIN: in progress of working \
+                                                      TEST: pectoralis segmentation from a CT slice',
+                                                type=str, required=True)
+    parser.add_argument('-CT_path', dest='CT_path', help='Path of CT',type=str, required=True)
+    parser.add_argument('-ts', dest='TEST_selection', help= '1: segmentation of all pectoralis as one class \
+                                                            2: segmentation of all pectoralis\
+                                                            3: segmentation of pectoralis and fat',
+                                                    type=int, required=True)
+    parser.add_argument('-sn', dest='slice_num', help='Slice number of the CT to be segmented',type=str, required=True)
+    parser.add_argument('-model_path', dest='model_path', help='Path of pectoralis segmentation model',type=str, required=True)
+    parser.add_argument('-model_path2', dest='model_path2', help='Path of fat segmentation model',type=str, required=False)
+    parser.add_argument('-out', dest='output_path', help='Output path for saving results (file name included)',type=str, required=False)
+    parser.add_argument('-verbose', '--verbose', help='Verbose process',required=False, action="store_true") #type = bool #default = 0
     args = parser.parse_args()
 
     if args.operation == 'TRAIN':
@@ -159,16 +168,41 @@ if __name__ == "__main__":
         pass
 
     elif args.operation == 'TEST':
-        data_path = '/Users/acil-user/Documents/1 - Rafael Moreta/ProyectBWH/ProjectData_clean/Cont_1_clean.nrrd'
-        output_path = '/Users/acil-user/Documents/1 - Rafael Moreta/ProyectBWH/Results/pred_labels.nrrd'
-        model_path = '/Users/acil-user/Projects/unet_models/pectoralis_segmentation_nc5/unet_multiclass_nc5.hdf5'
+        #data_path = '/ProjectData_clean/Cont_1_clean.nrrd'
+        #output_path = '/Results/pred_labels.nrrd'
+        #model_path = '/Users/acil-user/Projects/unet_models/pectoralis_segmentation_nc5/unet_multiclass_nc5.hdf5'
         # model_path = '/Users/acil-user/Projects/unet_models/pectoralis_segmentation_nc2/unet_nc2.hdf5'
 
-        slice_num = 90
-        selection = 2
-        verbose = 1
+        #slice_num = 90
+        #selection = 2
+        #verbose = 1
 
-        segment_pectoralis(data_path, slice_num, selection, model_path, output_path, verbose)
+        if args.TEST_selection not in [1,2,3]:
+            print('ERROR: test selection must be 1, 2 or 3.')
+        else:
+            print args.CT_path, args.slice_num, args.TEST_selection, args.model_path, args.output_path, args.verbose
+
+            if args.TEST_selection == 3:
+                # args.model_path =  [args.model_path]
+                # args.model_path.append(args.model_path2)
+
+                model_path = ['/home/rmoreta/Projects/PectoralisSegmentation/Results/unet_GPU_multiclass_nc5_1400im_24ep_lr001_final.hdf5']
+                model_path2 = '/home/rmoreta/Projects/PectoralisSegmentation/Results/unet_GPU_multiclass_fat_2_final.hdf5'
+                model_path.append(model_path2)
+
+            CT_path = '/home/rmoreta/Projects/PectoralisSegmentation/Data/ProjectData_clean/Cont_1_clean.nrrd'
+            #CT_path = '/home/rmoreta/Projects/PectoralisSegmentation/Data/output.nrrd'
+            slice_num = 30
+            test_selection = 3
+            #model_path = '/home/rmoreta/Projects/PectoralisSegmentation/Results/unet_GPU_multiclass_nc5_1400im_24ep_lr001_final.hdf5'
+            output_path = '/home/rmoreta/Projects/PectoralisSegmentation/Results/output.nrrd'
+            verbose = 1
+            segment_pectoralis(CT_path,
+                                slice_num,
+                                test_selection,
+                                model_path,
+                                output_path,
+                                verbose)
 
 
 

@@ -9,6 +9,7 @@ from keras import callbacks as callbacks
 # from keras import backend as K
 
 class LossHistory(callbacks.Callback):
+
     def on_train_begin(self, logs={}):
         self.losses = []
         self.IoU = []
@@ -17,14 +18,16 @@ class LossHistory(callbacks.Callback):
         self.losses.append(logs.get('loss'))
         self.IoU.append(logs.get('IoU'))
 
-
 class Engine():
     def __init__(self, network, output_net_path=None):
-        """
-        Constructor
-        Args:
-            output_path:
-            network: Network object
+        """Constructor.
+
+        Parameters
+        ----------
+        network : UNETNetwork object.
+
+        output_net_path : str with the path where the net should be saved.
+
         """
         self.output_path = output_net_path
 
@@ -36,6 +39,21 @@ class Engine():
         self.model = None
 
     def predict(self, images, model_path=None, model=None):
+        """Uses keras predict function for predicting data with a NN model.
+
+        Parameters
+        ----------
+        images : numpy array with the images that are going to be introduce in the neural network.
+
+        model_path : str with the path where the net is saved.
+
+        model : keras model if it has been built previously.
+
+        Returns
+        -------
+        pred_labels : numpy array with predicted labels
+        """
+
         self.test_images = images
 
         if model_path != None:
@@ -48,6 +66,21 @@ class Engine():
         return pred_labels
 
     def predict_pectoralis(self, selection, images, model_path):
+        """Prediction of pectoralis introducing CT images.
+
+        Parameters
+        ----------
+        selection : int with 1,2 or 3 depending on the wanted segmentation.
+
+        images : numpay array with the images to be segmented.
+
+        model_path : keras model if it has been built previously.
+
+        Returns
+        -------
+        pred_labels : numpy array with predicted labels.
+        """
+
         pred_labels = []
 
         if selection == 1:
@@ -55,6 +88,7 @@ class Engine():
         elif selection == 2:
             pred_labels = self.predict(images, model_path)
         elif selection  == 3:
+            print model_path
             pred_labels_pect = self.predict(images, model_path[0])
             pred_labels_fat = self.predict(images, model_path[1])
             pred_labels = np.concatenate((pred_labels_pect,pred_labels_fat[:,:,:,1:3]), axis=3)

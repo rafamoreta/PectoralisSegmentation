@@ -14,14 +14,20 @@ from keras.models import load_model
 
 class ArchitectureParameters(object):
     def __init__(self, num_classes=2, image_width=512, image_height=512, num_channels=1, class_code=None):
-        """
-        Constructor
-        Args:
-            num_classes:
-            image_width:
-            image_height:
-            num_channels:
-            class_code:
+        """Constructor.
+
+        Parameters
+        ----------
+        num_classes : int with number of classes that are going to be segmented.
+
+        image_width : int image width size.
+
+        image_height : int image height size.
+
+        num_channels : int number of channels (depth) of the image.
+
+        class_code : list of int with the code of the different classes.
+
         """
 
         self.num_classes = num_classes
@@ -43,19 +49,26 @@ class ArchitectureParameters(object):
         self.optimizer = optimizers.Adam(lr=0.001)
 
 class TrainingParameters(object):
+    """Constructor.
 
+    Parameters
+    ----------
+    None.
+
+    """
     num_epochs = 1
     training_batch_size = 10
     training_decay_rate = 0.99  # Needed for learning rate decrease
     verbose = 1
 
-
 class UNETNetwork(object):
     def __init__(self, architecture_parameters):
-        """
-        Constructor
-        Args:
-            architecture_parameters:
+        """Constructor.
+
+        Parameters
+        ----------
+        architecture_parameters : class with the architecture parameters of the neural network.
+
         """
 
         self.params = architecture_parameters
@@ -76,6 +89,17 @@ class UNETNetwork(object):
         self.optimizer = optimizers.Adam(lr=0.001)
 
     def build_UNET(self):
+        """Creates the structure in keras of an U-Net.
+
+        Parameters
+        ----------
+        None :
+
+        Returns
+        -------
+        model : keras model with the model structure of a U-Net.
+
+        """
         inputs = Input((self.image_width, self.image_height, self.num_channels))
 
         ## Part 1
@@ -187,12 +211,35 @@ class UNETNetwork(object):
         return self.model
 
     def load_UNET(self, model_path):
+        """Load the already trained model from path.
+
+        Parameters
+        ----------
+        model_path : str with the path of the pre-trained model.
+
+        Returns
+        -------
+        model : keras model of the trained model in path.
+
+        """
 
         self.model = load_model(model_path)
 
         return self.model
 
     def compile_UNET(self ,model, train_params):
+        """Compiles in keras the model structure built before.
+
+        Parameters
+        ----------
+        model : keras model with the built structure of the net model.
+
+        Returns
+        -------
+        model : compiled keras model.
+
+        """
+
         self.model = model
 
         self.model.compile(optimizer=optimizers.Adam(lr=self.training_learning_rate),
@@ -202,6 +249,19 @@ class UNETNetwork(object):
         return self.model
 
     def IoU(self, y_true, y_pred):
+        """Calculates the Intersection over Union (IoU) measurement between label and predicted data.
+
+        Parameters
+        ----------
+        y_true : label value.
+        y_pred : predicted value.
+
+        Returns
+        -------
+        IoU : float number with IoU measure.
+
+        """
+
         y_true = K.round(K.clip(y_true, 0, 1))
         y_pred = K.round(K.clip(y_pred, 0, 1))
 
