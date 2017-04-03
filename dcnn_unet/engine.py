@@ -87,7 +87,12 @@ class Engine():
             pred_labels = self.predict(images, model_path)
         elif selection == 2:
             pred_labels = self.predict(images, model_path)
+
         elif selection  == 3:
+            print model_path
+            pred_labels = self.predict(images, model_path)
+
+        elif selection  == 4:
             print model_path
             pred_labels_pect = self.predict(images, model_path[0])
             pred_labels_fat = self.predict(images, model_path[1])
