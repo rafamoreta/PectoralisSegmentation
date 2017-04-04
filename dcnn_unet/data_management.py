@@ -83,7 +83,7 @@ class DataManagement():
 
         return labels_unique
 
-    def save_labels_as_nrrd(self, output_path, labels):
+    def save_labels_as_nrrd(self, output_path, labels, selection=None):
 
         labels_unique = np.zeros(labels.shape[0:-1])
 
@@ -91,17 +91,69 @@ class DataManagement():
         labels[(labels > th)] = 1
         labels[(labels < th)] = 0
 
+        # Closing
+        labels = self.close_labels(labels)
+
+        # Unifying labels
         if self.num_classes == 2:
-            labels[(labels == 1)] = 67
+            labels[(labels == 1)] = 67 # Creo que esta mal
             labels_unique = labels
         else:
+            if selection == 4:
+                labels = self.delimit_fat_segmentation(labels) ## solo si se segmenta una sola slice
+
             for i in np.linspace(self.num_classes - 1, 1, self.num_classes - 1, dtype='int16'):
                 labels_unique = self.unify_labels(labels[:, :, :, i], labels_unique, self.class_code[i-1])
 
+
         sitk.WriteImage(sitk.GetImageFromArray(labels_unique.astype('int16')), (output_path))
+        #sitk.WriteImage(sitk.GetImageFromArray(labels.astype('int16')), (output_path))
 
         return labels_unique
 
     def save_labels_as_np(self, path, labels):
         # Save Results
         np.save((path + 'pred_labels.npy'), labels)
+
+    def close_labels(self, labels):
+        labels = labels.astype('int16')
+
+        for i in range(1,self.num_classes):
+            for j in range(labels.shape[0]):
+                aux = sitk.GetImageFromArray(labels[j, :, :, i])
+                labels[j, :, :, i] = sitk.GetArrayFromImage(sitk.BinaryFillhole(aux))
+
+        return labels
+
+    ## Post-processing
+
+    def delimit_fat_segmentation(self, labels):
+        condition = labels[0,:, :, 1:5] == 1
+        where_ones = np.where(condition)
+        where_ones = np.array(where_ones)
+
+        y_axis_min = where_ones[1].min()
+        y_axis_max = where_ones[1].max()
+
+        y_range = range(y_axis_min, y_axis_max)
+        x_axis_max = list()
+
+        for i in y_range:
+            condition = labels[0, :, i, 1:5] == 1
+            where_ones = np.where(condition)
+            where_ones = np.array(where_ones)
+            if condition.sum() == 0:
+                x_axis_max.append(x_axis_max[-2])
+            else:
+                x_axis_max.append(where_ones[0].max())
+
+        y_direction = range(y_axis_min) + range(y_axis_max, self.image_width)
+
+        index_to0_fat_y = np.ix_([0], range(self.image_width), y_direction,range(5,7))
+
+        for i, val in enumerate(x_axis_max):
+            index_to0_fat_x = np.ix_([0],range(val, self.image_height), [y_range[i]],range(5,7))
+            labels[index_to0_fat_x] = 0
+        labels[index_to0_fat_y] = 0
+
+        return labels
