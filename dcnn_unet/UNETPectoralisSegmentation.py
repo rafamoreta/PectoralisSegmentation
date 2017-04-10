@@ -72,7 +72,7 @@ def segment_pectoralis(data_path, slice_num, selection, model_path, output_path,
         print('Step 2: Starting Get Images...')
 
     data_management = DataManagement(architecture_params)
-    test_images = data_management.get_images_from_nrrd(data_path, slice_num)
+    test_images,image_nrrd = data_management.get_images_from_nrrd(data_path, slice_num)
 
     if verbose:
         print('Step 2 Done.')
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     #pass
     parser = argparse.ArgumentParser(description='Pectoralis and Fat Segmentation')
     parser.add_argument('-o', dest='operation', help='"TRAIN": in progress of working \
-                                                      "TEST": pectoralis segmentation from a CT slice',
+                                                      "TEST": pectoralis and/or fat segmentation from a CT slice',
                                                 type=str, required=True)
     parser.add_argument('-CT_path', dest='CT_path', help='Path of CT',type=str, required=True)
     parser.add_argument('-ts', dest='TEST_selection', help= '1: segmentation of all pectoralis as one class \

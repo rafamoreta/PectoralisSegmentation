@@ -1,5 +1,6 @@
 import SimpleITK as sitk
 import numpy as np
+from image_reader_writer import ImageReaderWriter
 
 class DataManagement():
     def __init__(self, architecture_params):
@@ -38,7 +39,7 @@ class DataManagement():
         # UNET Data
         images = np.reshape(CTSlices_new, (num_images, self.image_height, self.image_width, self.num_channels))
 
-        return images
+        return images, image_nrrd
 
     def get_labels_from_nrrd(self, path):
         # Labels
@@ -83,7 +84,7 @@ class DataManagement():
 
         return labels_unique
 
-    def save_labels_as_nrrd(self, output_path, labels, selection=None):
+    def save_labels_as_nrrd(self, output_path, labels, image_nrrd, selection=None):
 
         labels_unique = np.zeros(labels.shape[0:-1])
 
@@ -106,7 +107,10 @@ class DataManagement():
                 labels_unique = self.unify_labels(labels[:, :, :, i], labels_unique, self.class_code[i-1])
 
 
-        sitk.WriteImage(sitk.GetImageFromArray(labels_unique.astype('int16')), (output_path))
+        sitk_CT = ImageReaderWriter.read(CT_path)
+        sitk_image = ImageReaderWriter.numpy_to_sitkImage(labels_unique, sitk_image_template=sitk_CT)
+        ImageReaderWriter.write(sitk_image,output_path)
+        #sitk.WriteImage(sitk.GetImageFromArray(labels_unique.astype('int16')), (output_path))
         #sitk.WriteImage(sitk.GetImageFromArray(labels.astype('int16')), (output_path))
 
         return labels_unique
@@ -115,6 +119,7 @@ class DataManagement():
         # Save Results
         np.save((path + 'pred_labels.npy'), labels)
 
+    ## Post-processing
     def close_labels(self, labels):
         labels = labels.astype('int16')
 
@@ -124,8 +129,6 @@ class DataManagement():
                 labels[j, :, :, i] = sitk.GetArrayFromImage(sitk.BinaryFillhole(aux))
 
         return labels
-
-    ## Post-processing
 
     def delimit_fat_segmentation(self, labels):
         condition = labels[0,:, :, 1:5] == 1
