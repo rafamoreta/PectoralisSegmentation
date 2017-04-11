@@ -83,6 +83,7 @@ class DataManagement():
         sitk_CT = image_reader_writer.read(CT_path)
 
         numpy_CT = image_reader_writer.sitkImage_to_numpy(sitk_CT)
+        print numpy_CT.shape
         labels_unique_CT = np.zeros(numpy_CT.shape)
 
         labels_unique_CT[slice_num,:,:] = slice_labels_unique
