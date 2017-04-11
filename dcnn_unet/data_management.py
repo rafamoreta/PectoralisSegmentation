@@ -78,16 +78,17 @@ class DataManagement():
         return labels_cat
 
     def save_labels_as_original_nrrd(self, slice_labels_unique, slice_num, output_path, CT_path):
+        image_reader_writer = ImageReaderWriter()
 
-        sitk_CT = ImageReaderWriter.read(CT_path)
+        sitk_CT = image_reader_writer.read(CT_path)
 
-        numpy_CT = ImageReaderWriter.sitkImage_to_numpy(sitk_CT)
+        numpy_CT = image_reader_writer.sitkImage_to_numpy(sitk_CT)
         labels_unique_CT = np.zeros(numpy_CT.shape)
 
         labels_unique_CT[slice_num,:,:] = slice_labels_unique
 
-        sitk_image = ImageReaderWriter.numpy_to_sitkImage(labels_unique_CT, sitk_image_template=sitk_CT)
-        ImageReaderWriter.write(sitk_image,output_path)
+        sitk_image = image_reader_writer.numpy_to_sitkImage(labels_unique_CT, sitk_image_template=sitk_CT)
+        image_reader_writer.write(sitk_image,output_path)
 
     def save_labels_as_nrrd(self, labels, output_path):
 
