@@ -84,7 +84,7 @@ class DataManagement():
 
         return labels_unique
 
-    def save_labels_as_nrrd(self, output_path, labels, image_nrrd, selection=None):
+    def save_labels_as_nrrd(self, output_path, labels, CT_path, selection=None):
 
         labels_unique = np.zeros(labels.shape[0:-1])
 

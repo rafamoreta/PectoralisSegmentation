@@ -107,7 +107,7 @@ def segment_pectoralis(data_path, slice_num, selection, model_path, output_path,
         print('Step 5: Starting Save Segmentation Prediction...')
         print('-' * 30)
 
-    pred_labels_unique = data_management.save_labels_as_nrrd(output_path, pred_labels, selection)
+    pred_labels_unique = data_management.save_labels_as_nrrd(output_path, pred_labels, data_path, selection)
 
 
     return pred_labels, pred_labels_unique
