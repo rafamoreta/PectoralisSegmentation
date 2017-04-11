@@ -85,10 +85,11 @@ class DataManagement():
         numpy_CT = image_reader_writer.sitkImage_to_numpy(sitk_CT)
         print numpy_CT.shape
         labels_unique_CT = np.zeros(numpy_CT.shape)
+        print slice_labels_unique.shape
 
-        labels_unique_CT[slice_num,:,:] = slice_labels_unique
+        labels_unique_CT[:,:,slice_num] = slice_labels_unique.transpose([2,1,0])[:,:,0]
 
-        sitk_image = image_reader_writer.numpy_to_sitkImage(labels_unique_CT, sitk_image_template=sitk_CT)
+        sitk_image = image_reader_writer.numpy_to_sitkImage(labels_unique_CT, sitk_image_tempate=sitk_CT)
         image_reader_writer.write(sitk_image,output_path)
 
     def save_labels_as_nrrd(self, labels, output_path):
