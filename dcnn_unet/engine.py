@@ -29,7 +29,10 @@ class Engine():
         output_net_path : str with the path where the net should be saved.
 
         """
-        self.output_path = output_net_path
+        if output_net_path == None:
+            self.output_path = 'output_net.hd5f'
+        else:
+            self.output_path = output_net_path
 
         self.network = network
         self.train_images = None

@@ -77,15 +77,28 @@ class DataManagement():
 
         return labels_cat
 
-    def unify_labels(self, labels, labels_unique, code):
-        condition = (labels == 1)
-        index = np.where(condition)
-        labels_unique[index] = code
+    def save_labels_as_original_nrrd(self, slice_labels_unique, slice_num, output_path, CT_path):
 
-        return labels_unique
+        sitk_CT = ImageReaderWriter.read(CT_path)
 
-    def save_labels_as_nrrd(self, output_path, labels, CT_path, selection=None):
+        numpy_CT = ImageReaderWriter.sitkImage_to_numpy(sitk_CT)
+        labels_unique_CT = np.zeros(numpy_CT.shape)
 
+        labels_unique_CT[slice_num,:,:] = slice_labels_unique
+
+        sitk_image = ImageReaderWriter.numpy_to_sitkImage(labels_unique_CT, sitk_image_template=sitk_CT)
+        ImageReaderWriter.write(sitk_image,output_path)
+
+    def save_labels_as_nrrd(self, labels, output_path):
+
+        sitk.WriteImage(sitk.GetImageFromArray(labels.astype('int16')), (output_path))
+
+    def save_labels_as_np(self, labels, path):
+        # Save Results
+        np.save((path + 'pred_labels.npy'), labels)
+
+    ## Post-processing
+    def get_slice_labels_unique(self, labels, selection):
         labels_unique = np.zeros(labels.shape[0:-1])
 
         th = 0.5
@@ -106,20 +119,15 @@ class DataManagement():
             for i in np.linspace(self.num_classes - 1, 1, self.num_classes - 1, dtype='int16'):
                 labels_unique = self.unify_labels(labels[:, :, :, i], labels_unique, self.class_code[i-1])
 
+        return labels_unique
 
-        sitk_CT = ImageReaderWriter.read(CT_path)
-        sitk_image = ImageReaderWriter.numpy_to_sitkImage(labels_unique, sitk_image_template=sitk_CT)
-        ImageReaderWriter.write(sitk_image,output_path)
-        #sitk.WriteImage(sitk.GetImageFromArray(labels_unique.astype('int16')), (output_path))
-        #sitk.WriteImage(sitk.GetImageFromArray(labels.astype('int16')), (output_path))
+    def unify_labels(self, labels, labels_unique, code):
+        condition = (labels == 1)
+        index = np.where(condition)
+        labels_unique[index] = code
 
         return labels_unique
 
-    def save_labels_as_np(self, path, labels):
-        # Save Results
-        np.save((path + 'pred_labels.npy'), labels)
-
-    ## Post-processing
     def close_labels(self, labels):
         labels = labels.astype('int16')
 

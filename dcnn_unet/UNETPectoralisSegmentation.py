@@ -94,7 +94,7 @@ def segment_pectoralis(data_path, slice_num, selection, model_path, output_path,
         print('-' * 30)
         print('Step 4: Starting Engine Testing...')
 
-    unet_engine = Engine(unet_network, output_path)
+    unet_engine = Engine(unet_network)
     pred_labels = unet_engine.predict_pectoralis(selection, test_images, model_path)
 
     if verbose:
@@ -107,8 +107,8 @@ def segment_pectoralis(data_path, slice_num, selection, model_path, output_path,
         print('Step 5: Starting Save Segmentation Prediction...')
         print('-' * 30)
 
-    pred_labels_unique = data_management.save_labels_as_nrrd(output_path, pred_labels, data_path, selection)
-
+    pred_labels_unique  = data_management.get_slice_labels_unique(pred_labels, selection)
+    data_management.save_labels_as_original_nrrd(pred_labels_unique, slice_num, output_path, data_path)
 
     return pred_labels, pred_labels_unique
 
