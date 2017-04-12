@@ -4,10 +4,12 @@ from image_reader_writer import ImageReaderWriter
 
 class DataManagement():
     def __init__(self, architecture_params):
-        """
-        Constructor
-        Args:
-            architecture_params: ArchitectureParameters object
+        """Constructor.
+
+        Parameters
+        ----------
+        architecture_parameters : class with the architecture parameters of the neural network.
+
         """
 
         self.image_height = architecture_params.image_height
@@ -17,8 +19,22 @@ class DataManagement():
         self.class_code = architecture_params.class_code
 
     def get_images_from_nrrd(self, path, slice_num=None):
-        ## Reading Images
-        # Images
+        """Get in a numpy array the slice from the input nrrd.
+
+        Parameters
+        ----------
+        path : str
+            Path of nrrd.
+        slice_num : int
+            Number of the slice form the nrrd to be segmented.
+
+        Returns
+        -------
+        images : numpy array
+            Array with the slice with shape (1,image_height,image_width,num_channels)
+        """
+
+        # Reading Images
         image_nrrd = sitk.ReadImage(path)
         CTSlices = sitk.GetArrayFromImage(image_nrrd)
 
@@ -27,7 +43,7 @@ class DataManagement():
 
         num_images = CTSlices.shape[0]
 
-        ## Pre-processing images
+        # Pre-processing images
         # Normalizing
         numpy_array = CTSlices.astype(np.float32)
         numpy_array[numpy_array < -1024] = -1024
@@ -36,12 +52,25 @@ class DataManagement():
 
         CTSlices_new = numpy_array
 
-        # UNET Data
+        # UNET Data shape transform
         images = np.reshape(CTSlices_new, (num_images, self.image_height, self.image_width, self.num_channels))
 
-        return images, image_nrrd
+        return images
 
     def get_labels_from_nrrd(self, path):
+        """Transform the labels in Keras format for UNET.
+
+        Parameters
+        ----------
+        path : str
+            Path of nrrd.
+
+        Returns
+        -------
+        labels_cat : numpy array
+            Array with labels in binary form.
+        """
+
         # Labels
         image_nrrd = sitk.ReadImage(path)
         labels = sitk.GetArrayFromImage(image_nrrd)
@@ -60,6 +89,19 @@ class DataManagement():
         return labels_cat
 
     def get_labels_from_nrrd_as_oneclass(self, path):
+        """Transform the labels in Keras format for UNET if the segmentatoin is going to be just one class.
+
+        Parameters
+        ----------
+        path : str
+            Path of nrrd.
+
+        Returns
+        -------
+        labels_cat : numpy array
+            Array with labels in binary form.
+        """
+
         # Labels
         image_nrrd = sitk.ReadImage(path)
         labels = sitk.GetArrayFromImage(image_nrrd)
@@ -78,14 +120,27 @@ class DataManagement():
         return labels_cat
 
     def save_labels_as_original_nrrd(self, slice_labels_unique, slice_num, output_path, CT_path):
+        """Save resultant labels from a numpy array to path to a nrrd.
+
+        Parameters
+        ----------
+        slice_labels_unique : numpy array
+            Labels to be saved.
+        slice_num: int
+            Slice number from the original nrrd.
+        output_path: str
+            Path to be saved the nrrd. File name must be included.
+        CT_path: str
+            Path form the original nrrd.
+
+        """
+
         image_reader_writer = ImageReaderWriter()
 
         sitk_CT = image_reader_writer.read(CT_path)
 
         numpy_CT = image_reader_writer.sitkImage_to_numpy(sitk_CT)
-        print numpy_CT.shape
         labels_unique_CT = np.zeros(numpy_CT.shape)
-        print slice_labels_unique.shape
 
         labels_unique_CT[:,:,slice_num] = slice_labels_unique.transpose([2,1,0])[:,:,0]
 
@@ -93,15 +148,51 @@ class DataManagement():
         image_reader_writer.write(sitk_image,output_path)
 
     def save_labels_as_nrrd(self, labels, output_path):
+        """Save labels as nrrd.
+
+        Parameters
+        ----------
+        labels : numpy array
+            Labels to be saved.
+        output_path: str
+            Path to be saved the nrrd. File name must be included.
+
+        """
 
         sitk.WriteImage(sitk.GetImageFromArray(labels.astype('int16')), (output_path))
 
-    def save_labels_as_np(self, labels, path):
+    def save_labels_as_np(self, labels, output_path):
+        """Save labels as npy file.
+
+        Parameters
+        ----------
+        labels : numpy array
+            Labels to be saved.
+        output_path: str
+            Path to be saved the numpy array. File name must be included ending with '.npy'.
+
+        """
+
         # Save Results
-        np.save((path + 'pred_labels.npy'), labels)
+        np.save(output_path, labels)
 
     ## Post-processing
     def get_slice_labels_unique(self, labels, selection):
+        """From binary labels to an unique image with all labels joined together.
+
+        Parameters
+        ----------
+        labels : numpy array
+        selection: int
+            Selection of the segmentation process.
+
+        Returns
+        -------
+        labels_unique : numpy array
+            Single image with all the labels joined together.
+
+        """
+
         labels_unique = np.zeros(labels.shape[0:-1])
 
         th = 0.5
@@ -125,6 +216,22 @@ class DataManagement():
         return labels_unique
 
     def unify_labels(self, labels, labels_unique, code):
+        """Function to unify on eclass og label to labels unique variable with the label class code.
+
+        Parameters
+        ----------
+        labels : numpy array
+            Binary label of an specific class.
+        labels_unique: numpy array
+            Array to be saved where the class form the label is.
+        code: int
+            Code number of the label class.
+
+        Returns
+        -------
+        labels_unique : numpy array
+            Array with labels in binary form.
+        """
         condition = (labels == 1)
         index = np.where(condition)
         labels_unique[index] = code
@@ -132,6 +239,20 @@ class DataManagement():
         return labels_unique
 
     def close_labels(self, labels):
+        """Function which make a morphological close to the segmentation to all classes.
+
+        Parameters
+        ----------
+        labels : numpy array
+            Labels to perform the close.
+
+        Returns
+        -------
+        labels : numpy array
+            Array after performing the close.
+        """
+
+
         labels = labels.astype('int16')
 
         for i in range(1,self.num_classes):
@@ -142,6 +263,19 @@ class DataManagement():
         return labels
 
     def delimit_fat_segmentation(self, labels):
+        """Function needed when segmenting fat and pectoralis at the same time, in which it deletes segmented parts
+        of the fat when it goes beyond pectoralis limits.
+
+        Parameters
+        ----------
+        labels : numpy array
+
+        Returns
+        -------
+        labels : numpy array
+
+        """
+
         condition = labels[0,:, :, 1:5] == 1
         where_ones = np.where(condition)
         where_ones = np.array(where_ones)

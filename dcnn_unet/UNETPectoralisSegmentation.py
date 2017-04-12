@@ -35,6 +35,8 @@ def segment_pectoralis(data_path, slice_num, selection, model_path, output_path,
         if model_path == None:
             model_path = '/path'
 
+    # Selection = 3:
+    # Segmentation of background and right and left fat
     elif selection == 3:
         num_classes = 3  # length(class_code)+1 (Taking into account background)
         class_code = [17943, 17944]  # Code representing each label
@@ -44,7 +46,7 @@ def segment_pectoralis(data_path, slice_num, selection, model_path, output_path,
         if model_path == None:
             model_path = '/path'
 
-    # Selection = 3:
+    # Selection = 4:
     # Segmentation of background each pectoralis individual and right and left fat
     elif selection == 4:
         num_classes = 7  # length(class_code)+1 (Taking into account background)
@@ -113,38 +115,35 @@ def segment_pectoralis(data_path, slice_num, selection, model_path, output_path,
     return pred_labels, pred_labels_unique
 
 def train(data_folder, output_folder):
-    print('Train')
-
-    # Params
-    num_classes = 2  # length(class_code)+1 (Taking into account background)
-    class_code = [13335, 13336]
-    image_width = 512
-    image_height = 512
-    num_channels = 1
-    architecture_params = ArchitectureParameters(num_classes=num_classes,
-                                                       image_width=image_width,
-                                                       image_height=image_height,
-                                                       num_channels=num_channels,
-                                                       class_code=class_code)
-    train_params = TrainingParameters()
-    print('Params done')
-
-    # Get Images
-    extract_data = DataManagement(architecture_params)
-    train_images = extract_data.get_images_from_nrrd(data_folder)
-    train_labels = extract_data.get_labels_from_nrrd(data_folder)
-    print('Get images done')
-
-    # Netwrok
-    unet_network = UNETNetwork(architecture_params)
-    print('Netwrok construction done')
-
-    # Engine Training
-    unet_engine = Engine(output_folder, unet_network)
-    training_history, history = unet_engine.fit(train_images, train_labels, train_params)
-
-def get_labelmap(input_data, slice, unet_model_checkpoint_folder, unet_num_classes, unet_labelmap_output_path):
-    return "Labelmap would be generated in " + unet_labelmap_output_path
+    # print('Train')
+    #
+    # # Params
+    # num_classes = 2  # length(class_code)+1 (Taking into account background)
+    # class_code = [13335, 13336]
+    # image_width = 512
+    # image_height = 512
+    # num_channels = 1
+    # architecture_params = ArchitectureParameters(num_classes=num_classes,
+    #                                                    image_width=image_width,
+    #                                                    image_height=image_height,
+    #                                                    num_channels=num_channels,
+    #                                                    class_code=class_code)
+    # train_params = TrainingParameters()
+    # print('Params done')
+    #
+    # # Get Images
+    # extract_data = DataManagement(architecture_params)
+    # train_images = extract_data.get_images_from_nrrd(data_folder)
+    # train_labels = extract_data.get_labels_from_nrrd(data_folder)
+    # print('Get images done')
+    #
+    # # Netwrok
+    # unet_network = UNETNetwork(architecture_params)
+    # print('Netwrok construction done')
+    #
+    # # Engine Training
+    # unet_engine = Engine(output_folder, unet_network)
+    # training_history, history = unet_engine.fit(train_images, train_labels, train_params)
 
 ##
 
@@ -170,11 +169,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.operation == 'TRAIN':
-        # image_folder = '/Users/acil-user/Documents/1 - Rafael Moreta/ProyectBWH/ProjectData_clean/Cont_1_clean.nrrd'
-        # label_folder = 'H'
-        # output_folder = '/Users/acil-user/Documents/1 - Rafael Moreta/ProyectBWH/Results/'
-        # nn_path = '/Users/acil-user/Documents/1 - Rafael Moreta/ProyectBWH/unet_GPU_multiclass_nc5_1400im_16ep_lr001.hdf5'
-        # train(image_folder, label_folder, output_folder)
         pass
 
     elif args.operation == 'TEST':
@@ -204,6 +198,3 @@ if __name__ == "__main__":
                                args.model_path,
                                args.output_path,
                                args.verbose)
-
-
-

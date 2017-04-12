@@ -1,12 +1,5 @@
 import numpy as np
-# import SimpleITK as sitk
-# Keras
-# from keras.models import Model
-# from keras.layers import Input, merge, Convolution2D, MaxPooling2D, UpSampling2D, Dropout, Activation, Flatten
-# from keras import optimizers as optimizers
-# from keras import metrics as metrics
 from keras import callbacks as callbacks
-# from keras import backend as K
 
 class LossHistory(callbacks.Callback):
 

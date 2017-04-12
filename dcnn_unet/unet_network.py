@@ -1,10 +1,3 @@
-import numpy as np
-import tensorflow as tf
-
-import SimpleITK as sitk
-
-# Keras
-
 from keras import models as models
 from keras.layers import Input, merge, Convolution2D, MaxPooling2D, UpSampling2D, Dropout, Activation, Flatten
 from keras import optimizers as optimizers
@@ -93,7 +86,6 @@ class UNETNetwork(object):
 
         Parameters
         ----------
-        None :
 
         Returns
         -------
@@ -219,7 +211,7 @@ class UNETNetwork(object):
 
         Returns
         -------
-        model : keras model of the trained model in path.
+        model : keras model of the trained model in input path.
 
         """
 
@@ -253,8 +245,8 @@ class UNETNetwork(object):
 
         Parameters
         ----------
-        y_true : label value.
-        y_pred : predicted value.
+        y_true : np.array label value.
+        y_pred : np.array predicted value.
 
         Returns
         -------
