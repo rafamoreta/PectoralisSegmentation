@@ -89,7 +89,6 @@ class Engine():
             pred_labels = self.predict(images, model_path)
 
         elif selection  == 4:
-            print model_path
             pred_labels_pect = self.predict(images, model_path[0])
             pred_labels_fat = self.predict(images, model_path[1])
             pred_labels = np.concatenate((pred_labels_pect,pred_labels_fat[:,:,:,1:3]), axis=3)

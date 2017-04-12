@@ -74,7 +74,7 @@ def segment_pectoralis(data_path, slice_num, selection, model_path, output_path,
         print('Step 2: Starting Get Images...')
 
     data_management = DataManagement(architecture_params)
-    test_images,image_nrrd = data_management.get_images_from_nrrd(data_path, slice_num)
+    test_images = data_management.get_images_from_nrrd(data_path, slice_num)
 
     if verbose:
         print('Step 2 Done.')
@@ -144,6 +144,7 @@ def train(data_folder, output_folder):
     # # Engine Training
     # unet_engine = Engine(output_folder, unet_network)
     # training_history, history = unet_engine.fit(train_images, train_labels, train_params)
+    pass
 
 ##
 
